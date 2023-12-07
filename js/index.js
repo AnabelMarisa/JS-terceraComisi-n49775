@@ -1,128 +1,156 @@
+
 const btnCart = document.querySelector('.container-cart-icon');
-const containerCartProducts = document.querySelector(
-	'.container-cart-products'
-);
+const containerCartProducts = document.querySelector('.container-cart-products');
+
+
 
 btnCart.addEventListener('click', () => {
-	containerCartProducts.classList.toggle('hidden-cart');
+  containerCartProducts.classList.toggle('hidden-cart');
 });
 
 
-const cartInfo = document.querySelector('.cart-product');
-const rowProduct = document.querySelector('.row-product');
-
-
 const productsList = document.querySelector('.container-items');
+const rowProduct = document.querySelector('.row-product');
+const valorTotal = document.querySelector('.total-pagar');
+const countProducts = document.querySelector('#contador-productos');
+const cartEmpty = document.querySelector('.cart-empty');
+const cartTotal = document.querySelector('.cart-total');
 
 
 let allProducts = [];
 
-const valorTotal = document.querySelector('.total-pagar');
 
-const countProducts = document.querySelector('#contador-productos');
+productsList.addEventListener('click', (e) => {
+  if (e.target.classList.contains('btn-add-cart')) {
+  
+    const product = e.target.parentElement;
 
-const cartEmpty = document.querySelector('.cart-empty');
-const cartTotal = document.querySelector('.cart-total');
+    
+    const infoProduct = {
+      quantity: 1,
+      title: product.querySelector('h2').textContent,
+      price: product.querySelector('p').textContent,
+    };
 
-productsList.addEventListener('click', e => {
-	if (e.target.classList.contains('btn-add-cart')) {
-		const product = e.target.parentElement;
+    
+    const exists = allProducts.some((product) => product.title === infoProduct.title);
 
-		const infoProduct = {
-			quantity: 1,
-			title: product.querySelector('h2').textContent,
-			price: product.querySelector('p').textContent,
-		};
+    if (exists) {
+      
+      const products = allProducts.map((product) => {
+        if (product.title === infoProduct.title) {
+          product.quantity++;
+        }
+        return product;
+      });
+      allProducts = [...products];
 
-		const exits = allProducts.some(
-			product => product.title === infoProduct.title
-		);
+      // Mostrar notificación con Toastify 
+      showToast('Cantidad del producto actualizada');
+    } else {
+      
+      allProducts = [...allProducts, infoProduct];
 
-		if (exits) {
-			const products = allProducts.map(product => {
-				if (product.title === infoProduct.title) {
-					product.quantity++;
-					return product;
-				} else {
-					return product;
-				}
-			});
-			allProducts = [...products];
-		} else {
-			allProducts = [...allProducts, infoProduct];
-		}
+      
+      showToast('Producto añadido al carrito');
+    }
 
-		showHTML();
-	}
+    
+    showHTML();
+  }
 });
 
-rowProduct.addEventListener('click', e => {
-	if (e.target.classList.contains('icon-close')) {
-		const product = e.target.parentElement;
-		const title = product.querySelector('p').textContent;
 
-		allProducts = allProducts.filter(
-			product => product.title !== title
-		);
+rowProduct.addEventListener('click', (e) => {
+  if (e.target.classList.contains('icon-close')) {
+    
+    const product = e.target.parentElement;
+    const title = product.querySelector('p').textContent;
 
-		console.log(allProducts);
 
-		showHTML();
-	}
+    allProducts = allProducts.filter((product) => product.title !== title);
+
+    
+    showToast('Producto eliminado del carrito');
+
+    
+    showHTML();
+  }
 });
 
 
 const showHTML = () => {
-	if (!allProducts.length) {
-		cartEmpty.classList.remove('hidden');
-		rowProduct.classList.add('hidden');
-		cartTotal.classList.add('hidden');
-	} else {
-		cartEmpty.classList.add('hidden');
-		rowProduct.classList.remove('hidden');
-		cartTotal.classList.remove('hidden');
-	}
+  if (!allProducts.length) {
+    
+    cartEmpty.classList.remove('hidden');
+    rowProduct.classList.add('hidden');
+    cartTotal.classList.add('hidden');
+  } else {
+    
+    cartEmpty.classList.add('hidden');
+    rowProduct.classList.remove('hidden');
+    cartTotal.classList.remove('hidden');
+  }
 
-	
-	rowProduct.innerHTML = '';
 
-	let total = 0;
-	let totalOfProducts = 0;
+  rowProduct.innerHTML = '';
 
-	allProducts.forEach(product => {
-		const containerProduct = document.createElement('div');
-		containerProduct.classList.add('cart-product');
+  let total = 0;
+  let totalOfProducts = 0;
 
-		const priceNumeric = parseFloat(product.price.replace('€', '').trim());
+  
+  allProducts.forEach((product) => {
+    const containerProduct = document.createElement('div');
+    containerProduct.classList.add('cart-product');
 
-		containerProduct.innerHTML = `
-            <div class="info-cart-product">
-                <span class="cantidad-producto-carrito">${product.quantity}</span>
-                <p class="titulo-producto-carrito">${product.title}</p>
-                <span class="precio-producto-carrito">${product.price}</span>
-            </div>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="icon-close"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                />
-            </svg>
-        `;
+    const priceNumeric = parseFloat(product.price.replace('€', '').trim());
 
-		rowProduct.append(containerProduct);
+    
+    containerProduct.innerHTML = `
+      <div class="info-cart-product">
+        <span class="cantidad-producto-carrito">${product.quantity}</span>
+        <p class="titulo-producto-carrito">${product.title}</p>
+        <span class="precio-producto-carrito">${product.price}</span>
+      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="icon-close"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    `;
 
-		total = total + parseFloat(product.quantity * priceNumeric);
-		totalOfProducts = totalOfProducts + product.quantity;
-	});
+    
+    rowProduct.append(containerProduct);
 
-	valorTotal.innerText = `€${total}`;
-	countProducts.innerText = totalOfProducts;
+    
+    total = total + parseFloat(product.quantity * priceNumeric);
+    totalOfProducts = totalOfProducts + product.quantity;
+  });
+
+  
+  valorTotal.innerText = `€${total}`;
+  countProducts.innerText = totalOfProducts;
 };
+
+// Aquí agrego la librería
+function showToast(message) {
+  Toastify({
+    text: message,
+    duration: 3000,
+    gravity: 'bottom',
+    position: 'right',
+    backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)',
+    stopOnFocus: true,
+  }).showToast();
+}
+
+
